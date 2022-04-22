@@ -20,12 +20,14 @@ const makeSut = (): SutTypes => {
 }
 
 describe('FacebookAuthenticationService', () => {
+  const token = 'any_token'
+
   it('should call LoadFacebookUserApi with correct params', async () => {
     const { sut, loadFacebookUserApi } = makeSut()
 
-    await sut.perform({ token: 'any_token' })
+    await sut.perform({ token })
 
-    expect(loadFacebookUserApi.loadUser).toHaveBeenCalledWith({ token: 'any_token' })
+    expect(loadFacebookUserApi.loadUser).toHaveBeenCalledWith({ token })
     expect(loadFacebookUserApi.loadUser).toHaveBeenCalledTimes(1)
   })
 
@@ -34,7 +36,7 @@ describe('FacebookAuthenticationService', () => {
 
     loadFacebookUserApi.loadUser.mockResolvedValueOnce(undefined)
 
-    const authResult = await sut.perform({ token: 'any_token' })
+    const authResult = await sut.perform({ token })
 
     expect(authResult).toEqual(new AuthenticationError())
   })
