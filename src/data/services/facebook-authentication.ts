@@ -17,6 +17,7 @@ export class FacebookAuthenticationService implements FacebookAuthentication {
 
     if (facebookData !== undefined) {
       const accountData = await this.userAccountRepository.load({ email: facebookData.email })
+
       const facebookAccount = new FacebookAccount(facebookData, accountData)
 
       const { id } = await this.userAccountRepository.saveWithFacebook(facebookAccount)
