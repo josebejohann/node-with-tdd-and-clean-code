@@ -1,5 +1,5 @@
 import { LoadFacebookUserApi } from '@/data/contracts/apis'
-import { CreateFacebookAccountRepository, LoadUserAccountRepository } from '@/data/contracts/repositories'
+import { CreateFacebookAccountRepository, LoadUserAccountRepository, UpdateFacebookAccountRepository } from '@/data/contracts/repositories'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
 import { mock, MockProxy } from 'jest-mock-extended'
@@ -7,7 +7,7 @@ import { mock, MockProxy } from 'jest-mock-extended'
 type SutTypes = {
   sut: FacebookAuthenticationService
   facebookApi: MockProxy<LoadFacebookUserApi>
-  userAccountRepository: MockProxy<LoadUserAccountRepository & CreateFacebookAccountRepository>
+  userAccountRepository: MockProxy<LoadUserAccountRepository & CreateFacebookAccountRepository & UpdateFacebookAccountRepository>
 }
 
 const makeSut = (): SutTypes => {
@@ -18,7 +18,7 @@ const makeSut = (): SutTypes => {
     name: 'any_facebook_name'
   })
 
-  const userAccountRepository = mock<LoadUserAccountRepository & CreateFacebookAccountRepository>()
+  const userAccountRepository = mock<LoadUserAccountRepository & CreateFacebookAccountRepository & UpdateFacebookAccountRepository>()
 
   const sut = new FacebookAuthenticationService(
     facebookApi,
@@ -63,7 +63,7 @@ describe('FacebookAuthenticationService', () => {
     expect(userAccountRepository.load).toHaveBeenCalledTimes(1)
   })
 
-  it('should call CreateUserAccountRepository when LoadUserAccountRepository returns undefined', async () => {
+  it('should call CreateFacebookAccountRepository when LoadUserAccountRepository returns undefined', async () => {
     const { sut, userAccountRepository } = makeSut()
 
     userAccountRepository.load.mockResolvedValueOnce(undefined)
@@ -76,5 +76,23 @@ describe('FacebookAuthenticationService', () => {
       name: 'any_facebook_name'
     })
     expect(userAccountRepository.createFromFacebook).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call UpdateFacebookAccountRepository when LoadUserAccountRepository returns data', async () => {
+    const { sut, userAccountRepository } = makeSut()
+
+    userAccountRepository.load.mockResolvedValue({
+      id: 'any_id',
+      name: 'any_name'
+    })
+
+    await sut.perform({ token })
+
+    expect(userAccountRepository.updateWithFacebook).toHaveBeenCalledWith({
+      facebookId: 'any_facebook_id',
+      id: 'any_id',
+      name: 'any_name'
+    })
+    expect(userAccountRepository.updateWithFacebook).toHaveBeenCalledTimes(1)
   })
 })
