@@ -33,13 +33,35 @@ namespace HttpGetClient {
   }
 }
 
-describe('FacebookApi', () => {
+type SutTypes = {
+  sut: FacebookApi
+  httpClient: HttpGetClient
+  clientId: string
+  clientSecret: string
+}
+
+const makeSut = (): SutTypes => {
+  const httpClient = mock<HttpGetClient>()
   const clientId = 'any_client_id'
   const clientSecret = 'any_client_secret'
 
+  const sut = new FacebookApi(
+    httpClient,
+    clientId,
+    clientSecret
+  )
+
+  return {
+    sut,
+    httpClient,
+    clientId,
+    clientSecret
+  }
+}
+
+describe('FacebookApi', () => {
   it('should get app token', async () => {
-    const httpClient = mock<HttpGetClient>()
-    const sut = new FacebookApi(httpClient, clientId, clientSecret)
+    const { sut, httpClient, clientId, clientSecret } = makeSut()
 
     await sut.loadUser({ token: 'any_client_token' })
 
