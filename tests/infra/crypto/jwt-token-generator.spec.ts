@@ -11,6 +11,7 @@ type SutTypes = {
 
 const makeSut = (): SutTypes => {
   const fakeJwt = jwt as jest.Mocked<typeof jwt>
+  fakeJwt.sign.mockImplementation(() => 'any_token')
 
   const sut = new JwtTokenGenerator('any_secret')
 
@@ -23,10 +24,12 @@ const makeSut = (): SutTypes => {
 class JwtTokenGenerator {
   constructor (private readonly secret: string) {}
 
-  async generateToken (params: TokenGenerator.Params): Promise<void> {
+  async generateToken (params: TokenGenerator.Params): Promise<TokenGenerator.Result> {
     const expirationInSeconds = params.expirationInMs / 1000
 
-    jwt.sign({ key: params.key }, this.secret, { expiresIn: expirationInSeconds })
+    const token = jwt.sign({ key: params.key }, this.secret, { expiresIn: expirationInSeconds })
+
+    return token
   }
 }
 
@@ -38,5 +41,13 @@ describe('JwtTokenGenerator', () => {
 
     expect(fakeJwt.sign).toBeCalledWith({ key: 'any_key' }, 'any_secret', { expiresIn: 1 })
     expect(fakeJwt.sign).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call a token', async () => {
+    const { sut } = makeSut()
+
+    const token = await sut.generateToken({ key: 'any_key', expirationInMs: 1000 })
+
+    expect(token).toBe('any_token')
   })
 })
