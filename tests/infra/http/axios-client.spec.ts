@@ -5,8 +5,10 @@ import axios from 'axios'
 jest.mock('axios')
 
 class AxiosHttpClient {
-  async get (params: HttpGetClient.Params): Promise<void> {
-    await axios.get(params.url, { params: params.params })
+  async get (params: HttpGetClient.Params): Promise<HttpGetClient.Result> {
+    const { data } = await axios.get(params.url, { params: params.params })
+
+    return data
   }
 }
 
@@ -17,6 +19,10 @@ type SutTypes = {
 
 const makeSut = (): SutTypes => {
   const fakeAxios = axios as jest.Mocked<typeof axios>
+  fakeAxios.get.mockResolvedValue({
+    status: 200,
+    data: 'any_data'
+  })
 
   const sut = new AxiosHttpClient()
 
@@ -37,5 +43,13 @@ describe('AxiosHttpClient', () => {
 
     expect(fakeAxios.get).toHaveBeenCalledWith(url, { params })
     expect(fakeAxios.get).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return data on success', async () => {
+    const { sut } = makeSut()
+
+    const result = await sut.get({ url, params })
+
+    expect(result).toEqual('any_data')
   })
 })
