@@ -4,6 +4,22 @@ import jwt from 'jsonwebtoken'
 
 jest.mock('jsonwebtoken')
 
+type SutTypes = {
+  sut: JwtTokenGenerator
+  fakeJwt: jest.Mocked<typeof jwt>
+}
+
+const makeSut = (): SutTypes => {
+  const fakeJwt = jwt as jest.Mocked<typeof jwt>
+
+  const sut = new JwtTokenGenerator('any_secret')
+
+  return {
+    sut,
+    fakeJwt
+  }
+}
+
 class JwtTokenGenerator {
   constructor (private readonly secret: string) {}
 
@@ -16,8 +32,7 @@ class JwtTokenGenerator {
 
 describe('JwtTokenGenerator', () => {
   it('should call sign with correct params', async () => {
-    const fakeJwt = jwt as jest.Mocked<typeof jwt>
-    const sut = new JwtTokenGenerator('any_secret')
+    const { sut, fakeJwt } = makeSut()
 
     await sut.generateToken({ key: 'any_key', expirationInMs: 1000 })
 
